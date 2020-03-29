@@ -1,0 +1,55 @@
+---
+
+# Copyright 2018-present Open Networking Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: netconf-service-tosca-loader
+  labels:
+    app: netconf-service
+    chart: netconf-service
+    release: netconf
+    heritage: netconf
+spec:
+  backoffLimit: 12
+  template:
+    metadata:
+      labels:
+        app: netconf-service
+        release: netconf
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/tosca-configmap.yaml") . | sha256sum }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: netconf-service-tosca-loader
+          image: "xosproject/tosca-loader:1.1.5"
+          imagePullPolicy: "IfNotPresent"
+          env:
+            - name: XOS_USER
+              value: {{ .Values.xosAdminUser }}
+            - name: XOS_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: xos-admin-passwd-secret
+                  key: password
+          volumeMounts:
+            - name: netconf-service-tosca
+              mountPath: /opt/tosca
+      volumes:
+        - name: netconf-service-tosca
+          configMap:
+            name: netconf-service-tosca

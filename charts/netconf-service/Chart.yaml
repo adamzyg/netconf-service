@@ -1,0 +1,5 @@
+appVersion: 0.0.1
+description: A Helm chart for XOS's "netconf-service" service, which configures NetConf
+icon: https://guide.opencord.org/logos/cord.svg
+name: netconf-service
+version: 0.0.1
